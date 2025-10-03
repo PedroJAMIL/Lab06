@@ -18,7 +18,6 @@ public class HeroeNaval {
     @Column(length = 50)
     private String pais;
     
-    // Constructores
     public HeroeNaval() {}
     
     public HeroeNaval(String nombre, String descripcion, String pais) {
@@ -27,7 +26,6 @@ public class HeroeNaval {
         this.pais = pais;
     }
     
-    // Getters y Setters
     public Long getId() {
         return id;
     }

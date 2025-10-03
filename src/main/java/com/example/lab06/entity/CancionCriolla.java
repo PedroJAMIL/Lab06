@@ -15,7 +15,6 @@ public class CancionCriolla {
     @Column(length = 100)
     private String artista;
     
-    // Constructores
     public CancionCriolla() {}
     
     public CancionCriolla(String titulo, String artista) {
@@ -23,7 +22,6 @@ public class CancionCriolla {
         this.artista = artista;
     }
     
-    // Getters y Setters
     public Long getId() {
         return id;
     }

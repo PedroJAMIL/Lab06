@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Juegos - Festival de Octubre Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .game-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- NavBar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>Festival de Octubre Digital</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/heroes">Héroes Navales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/canciones">Canciones Criollas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juegos">Juegos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservas">Reservas</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4 text-primary">Dashboard de Juegos</h1>
+                <p class="lead text-muted">Festival de Octubre Digital - Todos los juegos en un solo lugar</p>
+                <hr class="w-50 mx-auto">
+            </div>
+        </div>
+
+        <!-- Estadísticas Generales -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-music fa-2x mb-2"></i>
+                        <h4 th:text="${totalAsignaciones}">0</h4>
+                        <p class="mb-0">Partidas Activas</p>
+                        <small>Adivina la Canción</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white text-center">
+                    <div class="card-body">
+                        <i class="fas fa-trophy fa-2x mb-2"></i>
+                        <h4 th:text="${juegoCompletado}">0</h4>
+                        <p class="mb-0">Juegos Completados</p>
+                        <small>Ganadores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-dark text-center">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h4 th:text="${solicitudesPendientes}">0</h4>
+                        <p class="mb-0">Solicitudes</p>
+                        <small>Pendientes</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-info text-white text-center">
+                    <div class="card-body">
+                        <i class="fas fa-heart fa-2x mb-2"></i>
+                        <h4 th:text="${totalIntenciones}">0</h4>
+                        <p class="mb-0">Intenciones</p>
+                        <small>Registradas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Juegos Principales -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Juegos Disponibles</h2>
+            </div>
+
+            <!-- Juego 1: Adivina la Canción Criolla -->
+            <div class="col-md-6 mb-4">
+                <div class="card game-card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Adivina la Canción Criolla</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Pon a prueba tus conocimientos sobre la música criolla peruana. Adivina el título de las canciones con el menor número de intentos posible.</p>
+                        
+                        <!-- Estado para usuario normal -->
+                        <div th:if="${!esAdmin}">
+                            <div th:if="${!tieneAsignacion and !tieneSolicitudPendiente}" class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> <strong>¡Únete al juego!</strong><br>
+                                Solicita una canción para empezar a jugar.
+                            </div>
+                            
+                            <div th:if="${tieneSolicitudPendiente}" class="alert alert-warning">
+                                <i class="fas fa-hourglass-half"></i> <strong>Solicitud pendiente</strong><br>
+                                El administrador revisará tu solicitud pronto.
+                            </div>
+                            
+                            <div th:if="${tieneAsignacion and !juegoCompletadoUsuario}" class="alert alert-success">
+                                <i class="fas fa-play"></i> <strong>¡Tienes una canción asignada!</strong><br>
+                                Canción: <strong th:text="${cancionAsignada.titulo}">Título</strong><br>
+                                Intentos realizados: <span class="badge bg-primary" th:text="${intentosRealizados}">0</span>
+                            </div>
+                            
+                            <div th:if="${juegoCompletadoUsuario}" class="alert alert-success">
+                                <i class="fas fa-trophy"></i> <strong>¡Felicitaciones!</strong><br>
+                                Completaste el juego en <span class="badge bg-success" th:text="${intentosRealizados}">0</span> intentos.
+                            </div>
+                        </div>
+
+                        <!-- Estado para admin -->
+                        <div th:if="${esAdmin}" class="alert alert-primary">
+                            <i class="fas fa-cog"></i> <strong>Modo Administrador</strong><br>
+                            Puedes asignar canciones y ver todas las estadísticas.
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/canciones" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-play"></i> Ir al Juego
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Juego 2: Intenciones de Año Nuevo -->
+            <div class="col-md-6 mb-4">
+                <div class="card game-card h-100 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Intenciones de Año Nuevo</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Registra tus propósitos y metas para el nuevo año. Mantén un registro de tus intenciones y comprométete con tus objetivos.</p>
+                        
+                        <!-- Estado para usuario normal -->
+                        <div th:if="${!esAdmin}">
+                            <div th:if="${#lists.isEmpty(intencionesUsuario)}" class="alert alert-info">
+                                <i class="fas fa-plus-circle"></i> <strong>¡Registra tus intenciones!</strong><br>
+                                Aún no has registrado ninguna intención para el año nuevo.
+                            </div>
+                            
+                            <div th:unless="${#lists.isEmpty(intencionesUsuario)}" class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> <strong>Intenciones registradas</strong><br>
+                                Tienes <span class="badge bg-success" th:text="${#lists.size(intencionesUsuario)}">0</span> intenciones registradas.
+                            </div>
+                        </div>
+
+                        <!-- Estado para admin -->
+                        <div th:if="${esAdmin}" class="alert alert-primary">
+                            <i class="fas fa-chart-bar"></i> <strong>Vista Administrativa</strong><br>
+                            Puedes ver todas las intenciones registradas por los usuarios.
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/intenciones" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-heart"></i> Ver Intenciones
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Juego 3: Camino de Dulces en Halloween -->
+            <div class="col-md-6 mb-4">
+                <div class="card game-card h-100 border-warning">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
+                        <h4 class="mb-0">Camino de Dulces en Halloween</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">¡Encuentra el camino más corto a la casa con dulces! Calcula los pasos mínimos y llega a tu destino con el menor número de intentos posible.</p>
+                        
+                        <!-- Estado para usuario normal -->
+                        <div th:if="${!esAdmin}">
+                            <!-- Aquí se mostrará el estado del juego del usuario -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-candy-cane"></i> <strong>¡Aventura de Halloween!</strong><br>
+                                Encuentra el camino más corto a la casa con dulces.
+                            </div>
+                        </div>
+
+                        <!-- Estado para admin -->
+                        <div th:if="${esAdmin}" class="alert alert-primary">
+                            <i class="fas fa-route"></i> <strong>Gestión de Caminos</strong><br>
+                            Asigna casas con dulces y gestiona los juegos de los usuarios.
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/camino-dulces" class="btn btn-lg w-100" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); border: none; color: white;">
+                            <i class="fas fa-candy-cane"></i> Ir al Juego
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección específica según rol -->
+        <div class="row">
+            <!-- Para usuarios normales: Su progreso personal -->
+            <div th:if="${!esAdmin}" class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Tu Progreso Personal</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Adivina la Canción</h5>
+                                <div th:if="${tieneAsignacion}">
+                                    <p><strong>Canción:</strong> <span th:text="${cancionAsignada.titulo}">N/A</span></p>
+                                    <p><strong>Artista:</strong> <span th:text="${cancionAsignada.artista}">N/A</span></p>
+                                    <p><strong>Intentos:</strong> <span class="badge bg-primary" th:text="${intentosRealizados}">0</span></p>
+                                    <p><strong>Estado:</strong> 
+                                        <span th:if="${juegoCompletadoUsuario}" class="badge bg-success">Completado</span>
+                                        <span th:unless="${juegoCompletadoUsuario}" class="badge bg-warning">En progreso</span>
+                                    </p>
+                                </div>
+                                <div th:unless="${tieneAsignacion}">
+                                    <p class="text-muted">No tienes una canción asignada actualmente.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Tus Intenciones</h5>
+                                <div th:if="${!#lists.isEmpty(intencionesUsuario)}">
+                                    <p><strong>Total registradas:</strong> <span class="badge bg-success" th:text="${#lists.size(intencionesUsuario)}">0</span></p>
+                                    <p><strong>Última intención:</strong></p>
+                                    <div class="bg-light p-2 rounded">
+                                        <small th:text="${intencionesUsuario[0].descripcion}">Sin intenciones</small>
+                                    </div>
+                                </div>
+                                <div th:if="${#lists.isEmpty(intencionesUsuario)}">
+                                    <p class="text-muted">Aún no has registrado intenciones.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Para admin: Ranking y estadísticas -->
+            <div th:if="${esAdmin}" class="col-12">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h4 class="mb-0">Top 5 Ranking</h4>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(topRanking)}" class="text-center text-muted">
+                                    <i class="fas fa-trophy fa-2x mb-2"></i>
+                                    <p>Aún no hay ganadores</p>
+                                </div>
+                                <div th:unless="${#lists.isEmpty(topRanking)}">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Pos</th>
+                                                <th>Usuario</th>
+                                                <th>Intentos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="asignacion, iterStat : ${topRanking}">
+                                                <td>
+                                                    <span th:if="${iterStat.index == 0}" class="badge bg-warning">1°</span>
+                                                    <span th:if="${iterStat.index == 1}" class="badge bg-secondary">2°</span>
+                                                    <span th:if="${iterStat.index == 2}" class="badge bg-danger">3°</span>
+                                                    <span th:if="${iterStat.index > 2}" th:text="${iterStat.index + 1}">4</span>
+                                                </td>
+                                                <td th:text="${asignacion.usuario.username}">Usuario</td>
+                                                <td>
+                                                    <span class="badge bg-success" th:text="${asignacion.intentosRealizados}">0</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="text-center">
+                                        <a href="/canciones/ranking" class="btn btn-outline-warning btn-sm">Ver Ranking Completo</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h4 class="mb-0">Intenciones Recientes</h4>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(intencionesRecientes)}" class="text-center text-muted">
+                                    <i class="fas fa-heart fa-2x mb-2"></i>
+                                    <p>No hay intenciones registradas</p>
+                                </div>
+                                <div th:unless="${#lists.isEmpty(intencionesRecientes)}">
+                                    <div th:each="intencion : ${intencionesRecientes}" class="border-bottom pb-2 mb-2">
+                                        <small class="text-muted" th:text="${intencion.usuario.username}">Usuario</small>
+                                        <p class="mb-1" th:text="${intencion.descripcion}">Intención</p>
+                                        <small class="text-muted" th:text="${#temporals.format(intencion.fechaCreacion, 'dd/MM/yyyy')}">Fecha</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <a href="/intenciones" class="btn btn-outline-info btn-sm">Ver Todas las Intenciones</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acceso rápido -->
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <h4 class="mb-4">Acceso Rápido</h4>
+                <div class="btn-group" role="group">
+                    <a href="/canciones" class="btn btn-outline-primary btn-lg">
+                        Canciones
+                    </a>
+                    <a href="/intenciones" class="btn btn-outline-success btn-lg">
+                        Intenciones
+                    </a>
+                    <a href="/heroes" class="btn btn-outline-info btn-lg">
+                        Héroes
+                    </a>
+                    <a href="/canciones/ranking" class="btn btn-outline-warning btn-lg">
+                        Ranking
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

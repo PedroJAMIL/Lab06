@@ -13,4 +13,7 @@ public interface AsignacionCancionRepository extends JpaRepository<AsignacionCan
     Optional<AsignacionCancion> findByUsuario(Usuario usuario);
     List<AsignacionCancion> findBySolicitudPendienteTrue();
     List<AsignacionCancion> findAllByOrderByFechaAsignacionDesc();
+    
+    List<AsignacionCancion> findByJuegoCompletadoTrueOrderByIntentosRealizadosAsc();
+    Long countByJuegoCompletadoTrue();
 }

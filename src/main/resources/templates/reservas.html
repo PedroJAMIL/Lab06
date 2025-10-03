@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas de Mesas - Oktoberfest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .mesa-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .mesa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .oktoberfest-card {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            color: white;
+        }
+        .mesa-disponible {
+            border-left: 5px solid #28a745;
+            background-color: #f8f9fa;
+        }
+        .mesa-ocupada {
+            border-left: 5px solid #dc3545;
+            background-color: #f8f9fa;
+        }
+        .mesa-parcial {
+            border-left: 5px solid #ffc107;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- NavBar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>Festival de Octubre Digital</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/heroes">Héroes Navales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/canciones">Canciones Criollas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/camino-dulces">Camino de Dulces</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juegos">Juegos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/reservas">Reservas</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4" style="color: #8B4513;">
+                    <i class="fas fa-beer"></i> Reservas de Mesas - Oktoberfest
+                </h1>
+                <p class="lead text-muted">Sistema de reservas para las mesas del festival</p>
+                <hr class="w-50 mx-auto">
+            </div>
+        </div>
+
+        <!-- Mensajes de éxito y error -->
+        <div th:if="${exito}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${exito}">Mensaje de éxito</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}">Mensaje de error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Estadísticas Generales -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card oktoberfest-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chair fa-2x mb-2"></i>
+                        <h4 th:text="${totalMesas}">0</h4>
+                        <p class="mb-0">Mesas Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white text-center">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h4 th:text="${mesasDisponibles}">0</h4>
+                        <p class="mb-0">Mesas Disponibles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-danger text-white text-center">
+                    <div class="card-body">
+                        <i class="fas fa-times-circle fa-2x mb-2"></i>
+                        <h4 th:text="${mesasOcupadas}">0</h4>
+                        <p class="mb-0">Mesas Ocupadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-info text-white text-center">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <h4 th:text="${reservasActivas}">0</h4>
+                        <p class="mb-0">Reservas Activas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Administrador -->
+        <div th:if="${esAdmin}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">Panel de Administración</h2>
+                </div>
+            </div>
+
+            <!-- Crear Nueva Mesa -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Crear Nueva Mesa</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/reservas/crear-mesa}" method="post" class="row g-3">
+                        <div class="col-md-8">
+                            <label for="numeroMesa" class="form-label">Número de Mesa:</label>
+                            <input type="number" class="form-control" name="numeroMesa" min="1" max="999" required>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i> Crear Mesa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Gestión de Mesas -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Gestión de Mesas</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(mesas)}" class="text-center py-3">
+                        <p class="text-muted">No hay mesas registradas</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(mesas)}" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mesa #</th>
+                                    <th>Capacidad</th>
+                                    <th>Ocupados</th>
+                                    <th>Disponibles</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="mesa : ${mesas}">
+                                    <td><strong th:text="${mesa.numero}">1</strong></td>
+                                    <td th:text="${mesa.capacidad}">4</td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${mesa.reservasActivas}">0</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success" th:text="${mesa.asientosDisponibles}">4</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${!mesa.disponible}" class="badge bg-danger">No disponible</span>
+                                        <span th:if="${mesa.disponible and !mesa.puedeReservar()}" class="badge bg-warning">Llena</span>
+                                        <span th:if="${mesa.disponible and mesa.puedeReservar()}" class="badge bg-success">Disponible</span>
+                                    </td>
+                                    <td>
+                                        <form th:action="@{/reservas/cambiar-disponibilidad/{id}(id=${mesa.id})}" 
+                                              method="post" style="display: inline;" class="d-flex gap-2">
+                                            <select name="disponible" class="form-select form-select-sm" style="width: 120px;">
+                                                <option th:value="true" th:selected="${mesa.disponible}">Disponible</option>
+                                                <option th:value="false" th:selected="${!mesa.disponible}">No disponible</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Cambiar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservas Activas -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Reservas Activas</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(reservasActivasList)}" class="text-center py-3">
+                        <p class="text-muted">No hay reservas activas</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(reservasActivasList)}" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Mesa #</th>
+                                    <th>Fecha Reserva</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="reserva : ${reservasActivasList}">
+                                    <td>
+                                        <strong th:text="${reserva.usuario.nombre}">Usuario</strong><br>
+                                        <small class="text-muted" th:text="${reserva.usuario.correo}">correo</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${reserva.mesa.numero}">1</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(reserva.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                                    <td>
+                                        <form th:action="@{/reservas/liberar/{id}(id=${reserva.id})}" 
+                                              method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i> Liberar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Usuario -->
+        <div th:unless="${esAdmin}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">Sistema de Reservas</h2>
+                </div>
+            </div>
+
+            <!-- Estado de Reserva del Usuario -->
+            <div th:if="${tieneReserva}" class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Tu Reserva Actual</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Mesa reservada:</strong> <span class="badge bg-primary" th:text="${reservaActual.mesa.numero}">0</span></p>
+                            <p><strong>Fecha de reserva:</strong> <span th:text="${#temporals.format(reservaActual.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</span></p>
+                            <p><strong>Ocupación de la mesa:</strong> 
+                                <span th:text="${reservaActual.mesa.reservasActivas}">0</span> / 
+                                <span th:text="${reservaActual.mesa.capacidad}">4</span> personas
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <form th:action="@{/reservas/cancelar-reserva}" method="post">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancelar Reserva
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mesas Disponibles -->
+            <div th:unless="${tieneReserva}" class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-search"></i> Mesas Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(mesasDisponiblesList)}" class="text-center py-5">
+                        <i class="fas fa-frown fa-3x text-muted mb-3"></i>
+                        <h5>No hay mesas disponibles</h5>
+                        <p class="text-muted">Todas las mesas están ocupadas. Intenta más tarde.</p>
+                    </div>
+                    
+                    <div th:unless="${#lists.isEmpty(mesasDisponiblesList)}" class="row">
+                        <div class="col-md-6 col-lg-4 mb-3" th:each="mesa : ${mesasDisponiblesList}">
+                            <div class="card mesa-card mesa-disponible">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Mesa <span th:text="${mesa.numero}">1</span></h5>
+                                    <p class="card-text">
+                                        <strong>Disponibles:</strong> <span class="badge bg-success" th:text="${mesa.asientosDisponibles}">4</span> / 
+                                        <span th:text="${mesa.capacidad}">4</span> asientos
+                                    </p>
+                                    <p class="card-text">
+                                        <strong>Ocupados:</strong> <span class="badge bg-primary" th:text="${mesa.reservasActivas}">0</span>
+                                    </p>
+                                    <form th:action="@{/reservas/reservar}" method="post">
+                                        <input type="hidden" name="mesaId" th:value="${mesa.id}">
+                                        <button type="submit" class="btn btn-success w-100" th:disabled="${!mesa.puedeReservar()}">
+                                            <i class="fas fa-plus"></i> Reservar Mesa
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información sobre el límite de reservas -->
+            <div th:unless="${tieneReserva}" class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Información importante:</strong> Solo puedes reservar una mesa por cuenta. 
+                Una vez que reserves, no podrás hacer otra reserva hasta que canceles la actual.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
