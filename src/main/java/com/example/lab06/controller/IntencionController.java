@@ -83,21 +83,18 @@ public class IntencionController {
             }
         }
 
-        // Obtener usuario
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
             return "redirect:/login";
         }
 
         try {
-            // Crear y guardar la intención
             Intencion intencion = new Intencion();
             intencion.setContenido(contenido.trim());
             intencion.setDescripcion(contenido.trim()); // Usar el mismo contenido para descripcion
             intencion.setUsuario(usuario);
             intencionRepository.save(intencion);
 
-            // Marcar en la sesión que ya registró una intención
             session.setAttribute("intencionRegistrada", Boolean.TRUE);
 
             model.addAttribute("exito", "Intención registrada exitosamente.");

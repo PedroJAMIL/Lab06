@@ -36,7 +36,6 @@ public class CancionController {
             return "redirect:/login";
         }
 
-        // Obtener usuario actual
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
             return "redirect:/login";
@@ -47,7 +46,6 @@ public class CancionController {
         model.addAttribute("esAdmin", esAdmin);
 
         if (esAdmin) {
-            // Vista de administrador
             List<CancionCriolla> canciones = cancionRepository.findAll();
             List<Usuario> usuarios = usuarioRepository.findAll();
             List<AsignacionCancion> solicitudes = asignacionRepository.findBySolicitudPendienteTrue();
@@ -56,7 +54,6 @@ public class CancionController {
             model.addAttribute("usuarios", usuarios);
             model.addAttribute("solicitudes", solicitudes);
         } else {
-            // Vista de usuario
             Optional<AsignacionCancion> asignacion = asignacionRepository.findByUsuario(usuario);
             model.addAttribute("tieneAsignacion", asignacion.isPresent());
             if (asignacion.isPresent()) {
@@ -82,22 +79,18 @@ public class CancionController {
             return "redirect:/canciones";
         }
 
-        // Obtener usuario y canción
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
         CancionCriolla cancion = cancionRepository.findById(cancionId).orElse(null);
 
         if (usuario != null && cancion != null) {
-            // Verificar si ya tiene asignación
             Optional<AsignacionCancion> asignacionExistente = asignacionRepository.findByUsuario(usuario);
             
             if (asignacionExistente.isPresent()) {
-                // Actualizar asignación existente
                 AsignacionCancion asignacion = asignacionExistente.get();
                 asignacion.setCancion(cancion);
                 asignacion.setSolicitudPendiente(false);
                 asignacionRepository.save(asignacion);
             } else {
-                // Crear nueva asignación
                 AsignacionCancion nuevaAsignacion = new AsignacionCancion(usuario, cancion);
                 asignacionRepository.save(nuevaAsignacion);
             }
@@ -137,6 +130,7 @@ public class CancionController {
             // Crear solicitud pendiente
             AsignacionCancion solicitud = new AsignacionCancion();
             solicitud.setUsuario(usuario);
+            solicitud.setCancion(null); // Explícitamente establecer como null
             solicitud.setSolicitudPendiente(true);
             asignacionRepository.save(solicitud);
             
