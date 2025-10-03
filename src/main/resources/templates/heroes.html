@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Héroes Navales - Festival de Octubre Digital</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- NavBar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>Festival de Octubre Digital</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/heroes">Héroes Navales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/intenciones">Intenciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/canciones">Canciones Criollas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juegos">Juegos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservas">Reservas</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${session.usuarioNombre}">
+                        <span class="navbar-text me-3">
+                            Hola, <strong th:text="${session.usuarioNombre}">Usuario</strong>
+                            <span th:if="${esAdmin}" class="badge bg-warning">Admin</span>
+                        </span>
+                    </li>
+                    <li class="nav-item" th:if="${session.usuarioNombre}">
+                        <a class="nav-link" href="/logout">Cerrar Sesión</a>
+                    </li>
+                    <li class="nav-item" th:unless="${session.usuarioNombre}">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">
+                    <i class="fas fa-anchor"></i> Héroes Navales
+                </h2>
+                
+                <!-- Formulario para Admin (solo visible si el usuario es admin) -->
+                <div th:if="${esAdmin}" class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Registrar Nuevo Héroe Naval</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/heroes/guardar}" method="post" th:object="${nuevoHeroe}">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="nombre" class="form-label">Nombre:</label>
+                                        <input type="text" class="form-control" id="nombre" 
+                                               th:field="*{nombre}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="pais" class="form-label">País:</label>
+                                        <input type="text" class="form-control" id="pais" 
+                                               th:field="*{pais}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="descripcion" class="form-label">Descripción:</label>
+                                        <textarea class="form-control" id="descripcion" 
+                                                  th:field="*{descripcion}" rows="2" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Registrar Héroe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                
+
+                <!-- Lista de héroes en formato de cards -->
+                <div class="row">
+                    <div th:each="heroe : ${heroes}" class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-star"></i> 
+                                    <span th:text="${heroe.nombre}">Nombre del Héroe</span>
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    <strong>País:</strong> 
+                                    <span th:text="${heroe.pais}">País</span>
+                                </p>
+                                <p class="card-text" th:text="${heroe.descripcion}">
+                                    Descripción del héroe naval
+                                </p>
+                            </div>
+                            <div class="card-footer text-muted">
+                                <small>Héroe Naval Histórico</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje si no hay héroes -->
+                <div th:if="${#lists.isEmpty(heroes)}" class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    No hay héroes navales registrados aún.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS y Font Awesome -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+</body>
+</html>

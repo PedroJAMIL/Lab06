@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intenciones - Festival de Octubre Digital</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- NavBar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>Festival de Octubre Digital</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/heroes">Héroes Navales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/intenciones">Intenciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/canciones">Canciones Criollas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juegos">Juegos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservas">Reservas</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${usuario != null}">
+                        <span class="navbar-text me-3">
+                            Hola, <span th:text="${usuario.nombre}"></span>
+                            <span th:if="${esAdmin}" class="badge bg-warning text-dark">Admin</span>
+                        </span>
+                    </li>
+                    <li class="nav-item" th:if="${usuario != null}">
+                        <a class="nav-link" href="/logout">Cerrar Sesión</a>
+                    </li>
+                    <li class="nav-item" th:if="${usuario == null}">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">
+                    <i class="fas fa-heart"></i>
+                    Intenciones y Peticiones
+                </h2>
+
+                <!-- Mensajes de error y éxito -->
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <div th:if="${exito}" class="alert alert-success" th:text="${exito}"></div>
+
+                <!-- Formulario para registrar intención (solo si no ha registrado una) -->
+                <div th:if="${!tieneIntencion}" class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Registrar Nueva Intención</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/intenciones/registrar}" method="post">
+                            <div class="mb-3">
+                                <label for="contenido" class="form-label">Tu intención o petición:</label>
+                                <textarea class="form-control" id="contenido" name="contenido" rows="4" 
+                                         placeholder="Escribe tu intención aquí (mínimo 15 caracteres)..." 
+                                         required minlength="15" maxlength="500"></textarea>
+                                <div class="form-text">
+                                    Mínimo 15 caracteres. No se permiten palabras ofensivas.
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-paper-plane"></i>
+                                Registrar Intención
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Mensaje si ya registró una intención -->
+                <div th:if="${tieneIntencion}" class="alert alert-info">
+                    <i class="fas fa-check-circle"></i>
+                    Ya has registrado una intención en esta sesión. Gracias por tu participación.
+                </div>
+
+                <!-- Vista de administración (solo para admins) -->
+                <div th:if="${esAdmin}" class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog"></i>
+                            Administración - Todas las Intenciones
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(intenciones)}" class="text-muted text-center py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No hay intenciones registradas aún.</p>
+                        </div>
+                        
+                        <div th:if="${!#lists.isEmpty(intenciones)}">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Usuario</th>
+                                            <th>Contenido</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="intencion : ${intenciones}">
+                                            <td th:text="${intencion.id}"></td>
+                                            <td th:text="${intencion.usuario.nombre}"></td>
+                                            <td>
+                                                <span th:text="${intencion.contenido}"></span>
+                                            </td>
+                                            <td th:text="${#temporals.format(intencion.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información para usuarios normales -->
+                <div th:if="${!esAdmin}" class="card mt-4">
+                    <div class="card-body">
+                        <h6>Información:</h6>
+                        <ul class="mb-0">
+                            <li>Solo puedes registrar una intención por sesión</li>
+                            <li>Las intenciones deben tener al menos 15 caracteres</li>
+                            <li>No se permiten palabras ofensivas o inapropiadas</li>
+                            <li>Tu intención será revisada por nuestros administradores</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
