@@ -23,19 +23,17 @@ public class Intencion {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
     
-    // Constructores
     public Intencion() {
         this.fechaCreacion = LocalDateTime.now();
     }
     
     public Intencion(String contenido, Usuario usuario) {
         this.contenido = contenido;
-        this.descripcion = "Intención de usuario"; // Valor por defecto
+        this.descripcion = "Intención de usuario";
         this.usuario = usuario;
         this.fechaCreacion = LocalDateTime.now();
     }
     
-    // Getters y Setters
     public Long getId() {
         return id;
     }

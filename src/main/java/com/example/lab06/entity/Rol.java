@@ -12,14 +12,12 @@ public class Rol {
     @Column(nullable = false, unique = true, length = 50)
     private String nombre;
     
-    // Constructores
     public Rol() {}
     
     public Rol(String nombre) {
         this.nombre = nombre;
     }
     
-    // Getters y Setters
     public Long getId() {
         return id;
     }

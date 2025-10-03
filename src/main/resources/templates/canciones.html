@@ -142,17 +142,100 @@
                 <div th:if="${!esAdmin}">
                     <div th:if="${tieneAsignacion}" class="card">
                         <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"> Tu canción asignada</h5>
+                            <h5 class="mb-0">Adivina la Canción Criolla</h5>
                         </div>
-                        <div class="card-body text-center">
-                            <h3 th:text="${cancionAsignada.titulo}"></h3>
-                            <p class="text-muted" th:text="'Artista: ' + ${cancionAsignada.artista}"></p>
-                            <p class="mt-3">¡Ya tienes una canción asignada participa y gana el juego.</p>
+                        <div class="card-body">
+                            <!-- Información del juego -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6>Información del Título:</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Letras:</strong> <span th:text="${#strings.length(cancionAsignada.titulo)}"></span></li>
+                                        <li><strong>Espacios:</strong> <span th:text="${espaciosEnTitulo}"></span></li>
+                                        <li><strong>Palabras:</strong> <span th:text="${palabrasEnTitulo}"></span></li>
+                                        <li><strong>Longitud:</strong> <span th:text="${#strings.length(cancionAsignada.titulo)} + ' caracteres'"></span></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Tu Progreso:</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Intentos:</strong> <span th:text="${intentosRealizados}" class="badge bg-primary"></span></li>
+                                        <li><strong>Caracteres en posición correcta:</strong> <span th:text="${caracteresCorrectos}" class="badge bg-success"></span> / <span th:text="${#strings.length(cancionAsignada.titulo)}"></span></li>
+                                        <li><strong>Estado:</strong> 
+                                            <span th:if="${juegoCompletado}" class="badge bg-success">Completado</span>
+                                            <span th:unless="${juegoCompletado}" class="badge bg-warning">En progreso</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Visualización del progreso -->
+                            <div class="mb-4">
+                                <h6>Progreso del Juego:</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div style="font-family: monospace; font-size: 1.4em; letter-spacing: 3px; text-align: center;">
+                                        <span th:text="${progresoVisual}" class="text-primary"></span>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <small class="text-muted">Las palabras adivinadas aparecen completas, las que faltan aparecen como guiones bajos</small>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <span class="badge bg-info">Palabras en el título: <span th:text="${palabrasEnTitulo}">0</span></span>
+                                        <span class="badge bg-secondary">Intentos realizados: <span th:text="${intentosRealizados}">0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mostrar mensaje de palabras adivinadas si existe -->
+                            <div th:if="${palabrasAdivinadas}" class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> <span th:text="${palabrasAdivinadas}">Progreso</span>
+                            </div>
+
+                            <!-- Formulario del juego (solo si no está completado) -->
+                            <div th:unless="${juegoCompletado}">
+                                <h6>Intenta adivinar el título de la canción:</h6>
+                                <form th:action="@{/canciones/intentar}" method="post" class="row g-3">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" name="intento" 
+                                               placeholder="Escribe tu intento aquí..." 
+                                               required maxlength="100" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            Enviar Intento
+                                        </button>
+                                    </div>
+                                </form>
+                                <small class="text-muted mt-2">
+                                    Pista: <strong>Artista:</strong> <span th:text="${cancionAsignada.artista}"></span>
+                                </small>
+                            </div>
+
+                            <!-- Mensaje de felicitación si completó el juego -->
+                            <div th:if="${juegoCompletado}" class="alert alert-success text-center">
+                                <h4>Felicitaciones!</h4>
+                                <p class="mb-0">Adivinaste la canción <strong th:text="${cancionAsignada.titulo}"></strong> en <strong th:text="${intentosRealizados}"></strong> intentos.</p>
+                                <a href="/canciones/ranking" class="btn btn-outline-success mt-2">Ver Ranking</a>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Si NO tiene canción asignada -->
-                    <div th:if="${!tieneAsignacion}" class="card">
+                    <!-- Si NO tiene canción asignada pero tiene solicitud pendiente -->
+                    <div th:if="${!tieneAsignacion and tieneSolicitudPendiente}" class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Solicitud Pendiente</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="mb-3">Tu solicitud de asignación está pendiente.</p>
+                            <p class="text-muted">El administrador revisará tu solicitud y te asignará una canción pronto.</p>
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Esperando...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Si NO tiene canción asignada y NO tiene solicitud pendiente -->
+                    <div th:if="${!tieneAsignacion and !tieneSolicitudPendiente}" class="card">
                         <div class="card-header bg-secondary text-white">
                             <h5 class="mb-0"> Sección deshabilitada</h5>
                         </div>

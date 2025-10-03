@@ -22,7 +22,6 @@ public class Usuario {
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
     
-    // Constructores
     public Usuario() {}
     
     public Usuario(String nombre, String correo, String password, Rol rol) {
@@ -32,7 +31,6 @@ public class Usuario {
         this.rol = rol;
     }
     
-    // Getters y Setters
     public Long getId() {
         return id;
     }

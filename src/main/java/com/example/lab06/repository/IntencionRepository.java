@@ -13,4 +13,5 @@ public interface IntencionRepository extends JpaRepository<Intencion, Long> {
     List<Intencion> findByUsuarioOrderByFechaCreacionDesc(Usuario usuario);
     Optional<Intencion> findByUsuario(Usuario usuario);
     List<Intencion> findAllByOrderByFechaCreacionDesc();
+    List<Intencion> findTop5ByOrderByFechaCreacionDesc();
 }

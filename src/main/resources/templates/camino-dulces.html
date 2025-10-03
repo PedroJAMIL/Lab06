@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camino de Dulces en Halloween - Festival de Octubre Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .game-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .halloween-card {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+        }
+        .path-visualization {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- NavBar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>Festival de Octubre Digital</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/heroes">Héroes Navales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/canciones">Canciones Criollas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/camino-dulces">Camino de Dulces</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juegos">Juegos</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4" style="color: #ff6b35;">
+                    <i class="fas fa-candy-cane"></i> Camino de Dulces en Halloween
+                </h1>
+                <p class="lead text-muted">Encuentra el camino más corto a la casa con dulces</p>
+                <hr class="w-50 mx-auto">
+            </div>
+        </div>
+
+        <!-- Mensajes de éxito y error -->
+        <div th:if="${exito}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${exito}">Mensaje de éxito</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}">Mensaje de error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle"></i> <span th:text="${info}">Información</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Vista de Administrador -->
+        <div th:if="${esAdmin}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">Panel de Administración</h2>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card halloween-card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-gamepad fa-2x mb-2"></i>
+                            <h4 th:text="${totalJuegosActivos}">0</h4>
+                            <p class="mb-0">Juegos Activos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-trophy fa-2x mb-2"></i>
+                            <h4 th:text="${totalJuegosCompletados}">0</h4>
+                            <p class="mb-0">Juegos Completados</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-warning text-dark text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <h4 th:text="${#lists.size(usuarios)}">0</h4>
+                            <p class="mb-0">Usuarios Totales</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Asignación -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Asignar Nuevo Juego</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/camino-dulces/asignar}" method="post" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="usuarioId" class="form-label">Usuario:</label>
+                            <select class="form-select" name="usuarioId" required>
+                                <option value="">Seleccionar usuario...</option>
+                                <option th:each="usuario : ${usuarios}" 
+                                        th:value="${usuario.id}" 
+                                        th:text="${usuario.nombre + ' (' + usuario.correo + ')'}">Usuario</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="posicionCasa" class="form-label">Posición de Casa (>64):</label>
+                            <input type="number" class="form-control" name="posicionCasa" min="65" max="1000" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i> Asignar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Juegos Activos -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-play-circle"></i> Juegos Activos</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(juegosActivos)}" class="text-center py-3">
+                        <p class="text-muted">No hay juegos activos</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(juegosActivos)}" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Posición Casa</th>
+                                    <th>Posición Actual</th>
+                                    <th>Intentos</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="juego : ${juegosActivos}">
+                                    <td th:text="${juego.usuario.nombre}">Usuario</td>
+                                    <td th:text="${juego.posicionCasaDulces}">Casa</td>
+                                    <td th:text="${juego.posicionActual}">Actual</td>
+                                    <td th:text="${juego.intentosRealizados}">Intentos</td>
+                                    <td>
+                                        <span th:if="${juego.juegoCompletado}" class="badge bg-success">Completado</span>
+                                        <span th:unless="${juego.juegoCompletado}" class="badge bg-primary">En progreso</span>
+                                    </td>
+                                    <td>
+                                        <form th:action="@{/camino-dulces/deshabilitar/{id}(id=${juego.id})}" 
+                                              method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-pause"></i> Deshabilitar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Juegos Deshabilitados -->
+            <div class="card mb-4" th:if="${!#lists.isEmpty(juegosDeshabilitados)}">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-pause-circle"></i> Juegos Deshabilitados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Posición Casa</th>
+                                    <th>Intentos</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="juego : ${juegosDeshabilitados}">
+                                    <td th:text="${juego.usuario.nombre}">Usuario</td>
+                                    <td th:text="${juego.posicionCasaDulces}">Casa</td>
+                                    <td th:text="${juego.intentosRealizados}">Intentos</td>
+                                    <td>
+                                        <form th:action="@{/camino-dulces/habilitar/{id}(id=${juego.id})}" 
+                                              method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-play"></i> Habilitar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Usuario -->
+        <div th:unless="${esAdmin}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">Tu Juego de Halloween</h2>
+                </div>
+            </div>
+
+            <!-- Estado del Juego -->
+            <div th:if="${!tieneJuego}" class="card game-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h5>No tienes un juego asignado</h5>
+                    <p class="text-muted">El administrador debe asignarte una casa con dulces para comenzar.</p>
+                </div>
+            </div>
+
+            <div th:if="${tieneJuego}">
+                <!-- Información del Juego -->
+                <div class="card game-card mb-4">
+                    <div class="card-header halloween-card">
+                        <h5 class="mb-0">
+                            <i class="fas fa-home"></i> Tu Casa con Dulces
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Posición de la casa:</strong> <span class="badge bg-warning text-dark" th:text="${juego.posicionCasaDulces}">0</span></p>
+                                <p><strong>Tu posición actual:</strong> <span class="badge bg-primary" th:text="${juego.posicionActual}">0</span></p>
+                                <p><strong>Intentos realizados:</strong> <span class="badge bg-info" th:text="${juego.intentosRealizados}">0</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <div th:if="${!juegoHabilitado}" class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> Tu juego está deshabilitado
+                                </div>
+                                <div th:if="${juegoCompletado}" class="alert alert-success">
+                                    <i class="fas fa-trophy"></i> Felicitaciones. Completaste el juego
+                                </div>
+                                <div th:if="${juegoHabilitado and !juegoCompletado}" class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Necesitas <strong th:text="${pasosMinimos}">0</strong> pasos mínimos para llegar
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualización del Camino -->
+                <div th:if="${juegoHabilitado and !juegoCompletado}" class="path-visualization mb-4">
+                    <h6 class="text-center mb-3">
+                        <i class="fas fa-route"></i> Visualización del Camino
+                    </h6>
+                    <div class="text-center">
+                        <div style="font-family: monospace; font-size: 1.2em;">
+                            <span class="badge bg-light text-dark me-2">Inicio: 1</span>
+                            <i class="fas fa-arrow-right mx-2"></i>
+                            <span class="badge bg-primary me-2" th:text="'Actual: ' + ${juego.posicionActual}">Actual</span>
+                            <i class="fas fa-arrow-right mx-2"></i>
+                            <span class="badge bg-warning text-dark" th:text="'Casa: ' + ${juego.posicionCasaDulces}">Casa</span>
+                        </div>
+                        <small class="d-block mt-2">Puedes avanzar entre 1 y 6 posiciones por movimiento</small>
+                    </div>
+                </div>
+
+                <!-- Formulario del Juego -->
+                <div th:if="${juegoHabilitado and !juegoCompletado}" class="card game-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-gamepad"></i> Hacer Movimiento
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/camino-dulces/intentar}" method="post" class="row g-3">
+                            <div class="col-md-8">
+                                <label for="numeroObjetivo" class="form-label">¿A qué posición quieres moverte?</label>
+                                <input type="number" class="form-control" name="numeroObjetivo" 
+                                       th:min="${juego.posicionActual + 1}" 
+                                       th:max="${juego.posicionActual + 6}" 
+                                       th:placeholder="'Entre ' + (${juego.posicionActual} + 1) + ' y ' + (${juego.posicionActual} + 6)"
+                                       required>
+                                <div class="form-text">
+                                    Puedes moverte entre <strong th:text="${juego.posicionActual + 1}">0</strong> 
+                                    y <strong th:text="${juego.posicionActual + 6}">0</strong> posiciones.
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-walking"></i> Mover
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking Top 10 -->
+        <div class="card mt-5">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy"></i> Ranking Top 10 - Menos Intentos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(ranking)}" class="text-center py-3">
+                    <p class="text-muted">Aún no hay jugadores en el ranking</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(ranking)}" class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Usuario</th>
+                                <th>Posición Casa</th>
+                                <th>Intentos</th>
+                                <th>Fecha Completado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="juego, iterStat : ${ranking}">
+                                <td>
+                                    <span th:if="${iterStat.index == 0}" class="badge bg-warning text-dark">1°</span>
+                                    <span th:if="${iterStat.index == 1}" class="badge bg-secondary">2°</span>
+                                    <span th:if="${iterStat.index == 2}" class="badge bg-danger">3°</span>
+                                    <span th:if="${iterStat.index > 2}" class="badge bg-primary" 
+                                          th:text="${iterStat.index + 1}">4</span>
+                                </td>
+                                <td>
+                                    <strong th:text="${juego.usuario.nombre}">Usuario</strong>
+                                </td>
+                                <td th:text="${juego.posicionCasaDulces}">Casa</td>
+                                <td>
+                                    <span class="badge bg-success" th:text="${juego.intentosRealizados}">0</span>
+                                </td>
+                                <td th:text="${#temporals.format(juego.fechaCompletado, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
